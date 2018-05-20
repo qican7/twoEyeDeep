@@ -1,8 +1,10 @@
-X = [101.02,102.02,99.02];
+close all;clear;clc;warning off all;
 
-for i = 1:3
-    if X(i) > 100
-        i
-    end
-end
+img_left = imread('6left.png'); 
+img_right = imread('6right.png'); 
+
+
+[left_point,right_point] = match(img_left,img_right,1,1);
+
+
 

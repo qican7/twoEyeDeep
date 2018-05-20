@@ -1,7 +1,7 @@
 close all;clear;clc;warning off all;
 
-img_left = imread('imageTwoEye/29left.png'); 
-img_right = imread('imageTwoEye/29right.png'); 
+img_left = imread('29left.png'); 
+img_right = imread('29right.png'); 
 
 img_left_gray = rgb2gray(img_left);
 img_right_gray = rgb2gray(img_right);
@@ -37,7 +37,7 @@ for i = 1:image_m
         img_left_hist(leftLabel(i,j),img_left_gray(i,j)) = img_left_hist(leftLabel(i,j),img_left_gray(i,j)) + 1;
         img_right_hist(rightLabel(i,j),img_right_gray(i,j)) = img_right_hist(rightLabel(i,j),img_right_gray(i,j)) + 1;
         
-        %��Ŀͼ���ͳ��
+        %��Ŀͼ���ͳ��?
         if i < img_left_center(1,leftLabel(i,j))
             img_left_center(1,leftLabel(i,j)) = i;
         else if i > img_left_center(2,leftLabel(i,j))
@@ -52,7 +52,7 @@ for i = 1:image_m
             end 
         end
         
-        %��Ŀͼ���ͳ��
+        %��Ŀͼ���ͳ��?
         if i < img_right_center(1,rightLabel(i,j))
             img_right_center(1,rightLabel(i,j)) = i;
         else if i > img_right_center(2,rightLabel(i,j))
@@ -69,7 +69,7 @@ for i = 1:image_m
     end
 end
 
-%���㳬���ؿ������
+%���㳬���ؿ������?
 for i = 1:leftLabel_max
     img_left_center_point(1,i) =  (img_left_center(1,i) + img_left_center(2,i))./2;
     img_left_center_point(2,i) =  (img_left_center(3,i) + img_left_center(4,i))./2;
@@ -91,15 +91,34 @@ dist = zeros(1,leftLabel_max);
 
 % img_left_center_point = uint16(img_left_center_point);
 
-for i = 1:leftLabel_max  %����Ŀͼ���е�ÿһ�������ؿ��������
-    if img_left_center_point(2,i) > 100  %����Ŀͼ�����д���100�����������������ֹ��ƥ��
+%surf������ƥ����ϡ���Ӳ�ͼ
+[left_point,right_point,Pos11,parallax] = match(img_left, img_right , 1 , 1);
+
+pos11_len = size(Pos11,1);
+min_dist = 10000;
+
+
+for i = 1:leftLabel_max  %����Ŀͼ���е�ÿһ�������ؿ��������?
+    if img_left_center_point(2,i) > 100  %����Ŀͼ�����д���100�����������������ֹ��ƥ��?
+        min_dist = 10000;
+        for m = 1:pos11_len
+            distance_left = sqrt((img_left_center_point(1,i) - Pos11(j,2)).^2 + (img_left_center_point(2,i) - Pos11(j,1)).^2);
+            if distance_left < min_dist
+                min_dist = distance_left;
+                parallax_left = parallax(j);
+            end
+        end
+        
+        
         for j = 1:rightLabel_max %����Ŀͼ���ÿһ�������ؿ��������
-            distance = sqrt((img_left_center_point(1,i) - img_right_center_point(1,j)).^2 + (img_left_center_point(2,i) - img_right_center_point(2,j)).^2)
-            if  distance < 300
-                s = ChiSquareDistance(img_left_hist(i,:),img_right_hist(j,:));
-                if s > similar(i)
-                    similar(i) = s;
-                    dist(i) = distance;
+            if abs(img_left_center_point(1,i) - img_right_center_point(1,j)) < 20 && (img_right_center_point(2,j) > img_left_center_point(2,i) -  parallax_left -20 || img_right_center_point(2,j) < img_left_center_point(2,i) -  parallax_left + 20)
+                distance = sqrt((img_left_center_point(1,i) - img_right_center_point(1,j)).^2 + (img_left_center_point(2,i) - img_right_center_point(2,j)).^2);
+                if  distance < 100
+                    s = ChiSquareDistance(img_left_hist(i,:),img_right_hist(j,:));
+                    if s > similar(i)
+                        similar(i) = s;
+                        dist(i) = distance;
+                    end
                 end
             end
         end
